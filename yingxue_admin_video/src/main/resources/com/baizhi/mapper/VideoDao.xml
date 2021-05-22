@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.baizhi.dao.VideoDao">
+
+    <resultMap id="BaseResultMap" type="com.baizhi.entity.Video">
+        <!--@Table video-->
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="intro" column="intro" jdbcType="VARCHAR"/>
+        <result property="cover" column="cover" jdbcType="VARCHAR"/>
+        <result property="link" column="link" jdbcType="VARCHAR"/>
+        <result property="category_id" column="category_id" jdbcType="INTEGER"/>
+        <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+        <result property="category" column="cname" jdbcType="VARCHAR"/>
+        <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
+        <result property="deletedAt" column="deleted_at" jdbcType="TIMESTAMP"/>
+        <association property="uploader" javaType="User">
+            <result property="id" column="uid" jdbcType="INTEGER"/>
+            <result property="name" column="name" jdbcType="VARCHAR"/>
+            <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+            <result property="intro" column="uintro" jdbcType="VARCHAR"/>
+            <result property="phone" column="phone" jdbcType="VARCHAR"/>
+            <result property="phone_linked" column="phone_linked" jdbcType="OTHER"/>
+            <result property="openid" column="openid" jdbcType="VARCHAR"/>
+            <result property="wechat_linked" column="wechat_linked" jdbcType="OTHER"/>
+            <result property="followingCount" column="following_count" jdbcType="INTEGER"/>
+            <result property="followersCount" column="followers_count" jdbcType="INTEGER"/>
+            <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
+            <result property="updatedAt" column="updated_at" jdbcType="TIMESTAMP"/>
+            <result property="deletedAt" column="deleted_at" jdbcType="TIMESTAMP"/>
+        </association>
+    </resultMap>
+    <sql id="SELECT_SQL">
+        select
+        v.id id, v.title title, v.intro intro, v.cover cover, v.link link, v.category_id category_id,
+               v.created_at created_at, v.updated_at updated_at,v.deleted_at deleted_at
+            ,u.id uid,u.name name,u.avatar avatar,u.intro uintro,u.phone phone,u.phone_linked phone_linked,
+               u.openid openid,u.wechat_linked wechat_linked,u.followers_count followersCount,
+               u.following_count followingCount,u.created_at createdAt,u.updated_at updatedAt,u.deleted_at deletedAt
+            ,c.name cname
+        from video v left join user u on v.uid = u.id left join category c on v.category_id = c.id
+    </sql>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="BaseResultMap">
+        <include refid="SELECT_SQL"/>
+        where id = #{id}
+    </select>
+
+    <!--查询总条数-->
+    <select id="total" resultType="Integer">
+        select count(id) from video
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="BaseResultMap">
+        select vac.id id,vac.title title,vac.intro intro ,vac.cover cover ,vac.link link ,vac.category_id category_id ,
+            vac.created_at created_at ,vac.updated_at updated_at ,vac.deleted_at deleted_at ,vac.uid uid ,
+            vac.name name ,vac.avatar avatar ,vac.uintro uintro ,vac.phone phone
+            ,vac.phone_linked phone_linked ,vac.openid openid ,vac.wechat_linked wechat_linked ,vac.followersCount followersCount ,
+            vac.followingCount followingCount ,vac.createdAt createdAt ,vac.updatedAt updatedAt ,vac.deletedAt deletedAt ,
+            vac.cname cname
+        from
+        (<include refid="SELECT_SQL"/>
+        limit #{offset}, #{limit}
+        ) vac <where>
+            <if test="id != null">
+                id=#{id}
+            </if>
+            <if test="uploader_name!=null">
+                and name like concat('%',#{uploader_name},'%')
+            </if>
+            <if test="name!=null">
+                and title like concat('%',#{name},'%')
+            </if>
+            <if test="category_id!=null">
+                and category_id=#{category_id}
+            </if>
+        </where>
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="BaseResultMap">
+        select
+          id, title, intro, uid, cover, link, category_id, created_at, updated_at, deleted_at
+        from yingxue_cloud.video
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="title != null and title != ''">
+                and title = #{title}
+            </if>
+            <if test="intro != null and intro != ''">
+                and intro = #{intro}
+            </if>
+            <if test="uid != null">
+                and uid = #{uid}
+            </if>
+            <if test="cover != null and cover != ''">
+                and cover = #{cover}
+            </if>
+            <if test="link != null and link != ''">
+                and link = #{link}
+            </if>
+            <if test="category_id != null">
+                and category_id = #{category_id}
+            </if>
+            <if test="createdAt != null">
+                and created_at = #{createdAt}
+            </if>
+            <if test="updatedAt != null">
+                and updated_at = #{updatedAt}
+            </if>
+            <if test="deletedAt != null">
+                and deleted_at = #{deletedAt}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into yingxue_cloud.video(title, intro, uid, cover, link, category_id, created_at, updated_at, deleted_at)
+        values (#{title}, #{intro}, #{uploader.id}, #{cover}, #{link}, #{category_id}, #{createdAt}, #{updatedAt}, #{deletedAt})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update yingxue_cloud.video
+        <set>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="intro != null and intro != ''">
+                intro = #{intro},
+            </if>
+            <if test="uploader.id != null">
+                uid = #{uploader.id},
+            </if>
+            <if test="cover != null and cover != ''">
+                cover = #{cover},
+            </if>
+            <if test="link != null and link != ''">
+                link = #{link},
+            </if>
+            <if test="category_id != null">
+                category_id = #{category_id},
+            </if>
+            <if test="createdAt != null">
+                created_at = #{createdAt},
+            </if>
+            <if test="updatedAt != null">
+                updated_at = #{updatedAt},
+            </if>
+            <if test="deletedAt != null">
+                deleted_at = #{deletedAt},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from yingxue_cloud.video where id = #{id}
+    </delete>
+
+</mapper>
