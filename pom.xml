@@ -5,6 +5,9 @@
     <modules>
         <module>yingxue_admin_video</module>
         <module>yingxue_admin_user</module>
+        <module>yingxue_admin_commons</module>
+        <module>yingxue_admin_gateway</module>
+        <module>yingxue_admin_categories</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
